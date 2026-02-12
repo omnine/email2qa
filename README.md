@@ -19,8 +19,11 @@ pip install -e .[dev]
 ```
 
 3. Copy `.env.example` values into your shell/session.
+4. (optional) Create a local `.env` file from `.env.example` — the project uses `python-dotenv` to load it automatically at runtime.
 
 ## Environment variables
+
+The application will automatically load a local `.env` file (via `python-dotenv`) if present; shell environment variables take precedence.
 
 - `EMAIL2QA_EXCHANGE_SERVER` (e.g. `mail.example.com`)
 - `EMAIL2QA_EXCHANGE_EMAIL`
