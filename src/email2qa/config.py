@@ -4,6 +4,10 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 
+# Load environment variables from a local .env (if present). Do not override existing env vars.
+from dotenv import load_dotenv
+load_dotenv(override=False)
+
 
 @dataclass(frozen=True)
 class AppConfig:
