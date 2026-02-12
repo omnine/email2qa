@@ -19,6 +19,13 @@ def _parse_datetime(value: str | None) -> datetime | None:
     return parsed
 
 
+def confirm_checkpoint_reset(force: bool, input_fn=input) -> bool:
+    if force:
+        return True
+    answer = input_fn("Type RESET to confirm checkpoint deletion: ").strip()
+    return answer == "RESET"
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Extract Q&A pairs from Exchange Sent Items")
     parser.add_argument("--since", type=str, default=None, help="Start date (ISO-8601)")
@@ -41,6 +48,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Delete current checkpoint and exit",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Skip confirmation prompt for destructive actions",
+    )
     return parser
 
 
@@ -58,6 +70,9 @@ def main() -> None:
         return
 
     if args.checkpoint_reset:
+        if not confirm_checkpoint_reset(args.force):
+            print("Checkpoint reset canceled.")
+            return
         deleted = reset_checkpoint(checkpoint_file)
         if deleted:
             print(f"Checkpoint deleted: {checkpoint_file}")

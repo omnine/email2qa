@@ -63,6 +63,12 @@ Reset current checkpoint:
 python -m email2qa.main --checkpoint-reset
 ```
 
+Skip reset confirmation prompt:
+
+```powershell
+python -m email2qa.main --checkpoint-reset --force
+```
+
 ## Output files
 
 Each run writes to a timestamped folder under `EMAIL2QA_OUTPUT_DIR`:
