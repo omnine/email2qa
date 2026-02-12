@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from datetime import date
+from datetime import datetime
 
 
 @dataclass(frozen=True)
@@ -19,10 +19,11 @@ class AppConfig:
 
 @dataclass(frozen=True)
 class RunOptions:
-    since: date | None = None
-    until: date | None = None
+    since: datetime | None = None
+    until: datetime | None = None
     limit: int | None = None
     dry_run: bool = False
+    resume: bool = True
 
 
 def _required(name: str) -> str:

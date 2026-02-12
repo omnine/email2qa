@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from email2qa.checkpoint import Checkpoint, load_checkpoint, write_checkpoint
 from email2qa.config import AppConfig, RunOptions
 from email2qa.exchange_client import fetch_sent_items
 from email2qa.llm_client import LlmResult, OllamaClient
@@ -15,15 +16,21 @@ from email2qa.schema import Manifest, RejectedRecord
 def run_pipeline(config: AppConfig, options: RunOptions) -> str:
     started_at = datetime.now(timezone.utc)
     run_id, run_dir = make_run_dir(config.output_dir)
+    checkpoint_path = run_dir.parent / "checkpoint.json"
     accepted_path = run_dir / "accepted.jsonl"
     rejected_path = run_dir / "rejected.jsonl"
+
+    checkpoint = load_checkpoint(checkpoint_path) if options.resume else None
+    since = options.since
+    if checkpoint and (since is None or checkpoint.last_sent_at > since):
+        since = checkpoint.last_sent_at
 
     messages = fetch_sent_items(
         server=config.exchange_server,
         email=config.exchange_email,
         username=config.exchange_username,
         password=config.exchange_password,
-        since=options.since,
+        since=since,
         until=options.until,
         limit=options.limit,
     )
@@ -33,8 +40,18 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
 
     accepted = 0
     rejected = 0
+    last_processed: tuple[datetime, str] | None = None
 
     for message in messages:
+        if checkpoint and (message.sent_at, message.message_id) <= (
+            checkpoint.last_sent_at,
+            checkpoint.last_message_id,
+        ):
+            continue
+
+        if last_processed is None or (message.sent_at, message.message_id) > last_processed:
+            last_processed = (message.sent_at, message.message_id)
+
         pre = preprocess_email_body(message.body)
         if not pre.has_enough_content:
             reject = RejectedRecord(
@@ -86,5 +103,11 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
         min_confidence=config.min_confidence,
     )
     write_manifest(run_dir / "manifest.json", manifest)
+
+    if last_processed:
+        write_checkpoint(
+            checkpoint_path,
+            Checkpoint(last_sent_at=last_processed[0], last_message_id=last_processed[1]),
+        )
 
     return str(run_dir)

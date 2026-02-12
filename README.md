@@ -45,6 +45,12 @@ Live run:
 python -m email2qa.main --since 2026-01-01 --limit 100
 ```
 
+Disable resume behavior for a full reprocess:
+
+```powershell
+python -m email2qa.main --no-resume --since 2026-01-01 --limit 100
+```
+
 ## Output files
 
 Each run writes to a timestamped folder under `EMAIL2QA_OUTPUT_DIR`:
@@ -52,3 +58,6 @@ Each run writes to a timestamped folder under `EMAIL2QA_OUTPUT_DIR`:
 - `accepted.jsonl` - accepted Q&A records
 - `rejected.jsonl` - rejected items with reasons
 - `manifest.json` - run metrics and settings
+
+Checkpoint state is persisted at `EMAIL2QA_OUTPUT_DIR/checkpoint.json`.
+By default, runs resume from the last processed `(sent_at, message_id)` to avoid reprocessing prior emails.

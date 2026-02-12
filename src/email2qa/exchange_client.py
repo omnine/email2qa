@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, time
+from datetime import datetime
 
 
 @dataclass(frozen=True)
@@ -21,8 +21,8 @@ def fetch_sent_items(
     email: str,
     username: str,
     password: str,
-    since: date | None,
-    until: date | None,
+    since: datetime | None,
+    until: datetime | None,
     limit: int | None,
 ) -> list[SourceEmail]:
     try:
@@ -36,9 +36,9 @@ def fetch_sent_items(
 
     query = account.sent.all().order_by("-datetime_sent")
     if since:
-        query = query.filter(datetime_sent__gte=datetime.combine(since, time.min))
+        query = query.filter(datetime_sent__gte=since)
     if until:
-        query = query.filter(datetime_sent__lte=datetime.combine(until, time.max))
+        query = query.filter(datetime_sent__lte=until)
     if limit and limit > 0:
         query = query[:limit]
 
