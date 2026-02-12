@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 
 from dateutil.parser import isoparse
 
-from email2qa.config import RunOptions, load_config
+from email2qa.checkpoint import checkpoint_path, load_checkpoint, reset_checkpoint
+from email2qa.config import RunOptions, get_output_dir, load_config
 from email2qa.pipeline import run_pipeline
 
 
@@ -30,11 +31,39 @@ def build_parser() -> argparse.ArgumentParser:
         default=True,
         help="Resume from output checkpoint file",
     )
+    parser.add_argument(
+        "--checkpoint-inspect",
+        action="store_true",
+        help="Print current checkpoint and exit",
+    )
+    parser.add_argument(
+        "--checkpoint-reset",
+        action="store_true",
+        help="Delete current checkpoint and exit",
+    )
     return parser
 
 
 def main() -> None:
     args = build_parser().parse_args()
+
+    output_dir = get_output_dir()
+    checkpoint_file = checkpoint_path(output_dir)
+    if args.checkpoint_inspect:
+        checkpoint = load_checkpoint(checkpoint_file)
+        if checkpoint is None:
+            print(f"No checkpoint found at: {checkpoint_file}")
+        else:
+            print(checkpoint.model_dump_json(indent=2))
+        return
+
+    if args.checkpoint_reset:
+        deleted = reset_checkpoint(checkpoint_file)
+        if deleted:
+            print(f"Checkpoint deleted: {checkpoint_file}")
+        else:
+            print(f"No checkpoint found to delete at: {checkpoint_file}")
+        return
 
     config = load_config()
     options = RunOptions(

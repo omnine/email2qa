@@ -45,3 +45,7 @@ def load_config() -> AppConfig:
         output_dir=os.getenv("EMAIL2QA_OUTPUT_DIR", "./output").strip(),
         min_confidence=float(os.getenv("EMAIL2QA_MIN_CONFIDENCE", "0.65")),
     )
+
+
+def get_output_dir() -> str:
+    return os.getenv("EMAIL2QA_OUTPUT_DIR", "./output").strip()

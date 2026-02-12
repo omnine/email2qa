@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from email2qa.checkpoint import Checkpoint, load_checkpoint, write_checkpoint
+from email2qa.checkpoint import Checkpoint, checkpoint_path, load_checkpoint, write_checkpoint
 from email2qa.config import AppConfig, RunOptions
 from email2qa.exchange_client import fetch_sent_items
 from email2qa.llm_client import LlmResult, OllamaClient
@@ -16,11 +16,11 @@ from email2qa.schema import Manifest, RejectedRecord
 def run_pipeline(config: AppConfig, options: RunOptions) -> str:
     started_at = datetime.now(timezone.utc)
     run_id, run_dir = make_run_dir(config.output_dir)
-    checkpoint_path = run_dir.parent / "checkpoint.json"
+    checkpoint_file = checkpoint_path(config.output_dir)
     accepted_path = run_dir / "accepted.jsonl"
     rejected_path = run_dir / "rejected.jsonl"
 
-    checkpoint = load_checkpoint(checkpoint_path) if options.resume else None
+    checkpoint = load_checkpoint(checkpoint_file) if options.resume else None
     since = options.since
     if checkpoint and (since is None or checkpoint.last_sent_at > since):
         since = checkpoint.last_sent_at
@@ -106,7 +106,7 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
 
     if last_processed:
         write_checkpoint(
-            checkpoint_path,
+            checkpoint_file,
             Checkpoint(last_sent_at=last_processed[0], last_message_id=last_processed[1]),
         )
 

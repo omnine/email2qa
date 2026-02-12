@@ -51,6 +51,18 @@ Disable resume behavior for a full reprocess:
 python -m email2qa.main --no-resume --since 2026-01-01 --limit 100
 ```
 
+Inspect current checkpoint:
+
+```powershell
+python -m email2qa.main --checkpoint-inspect
+```
+
+Reset current checkpoint:
+
+```powershell
+python -m email2qa.main --checkpoint-reset
+```
+
 ## Output files
 
 Each run writes to a timestamped folder under `EMAIL2QA_OUTPUT_DIR`:
