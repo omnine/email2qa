@@ -86,7 +86,7 @@ desktop.ini
 *.sql
 *.sqlite
 .env
-.env.*
+#.env.*
 *.pem
 *.key
 
