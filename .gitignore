@@ -1,0 +1,96 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+.eggs/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Django / Flask / local DB
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+instance/
+.webassets-cache
+
+# Sphinx documentation
+docs/_build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# mypy / type checkers
+.mypy_cache/
+.pyre/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Project-specific
+email2qa.egg-info/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Generic
+*.log
+*.sql
+*.sqlite
+.env
+.env.*
+*.pem
+*.key
+
+# Ignore compiled wheel / build metadata
+pip-wheel-metadata/
+
+# End of .gitignore
