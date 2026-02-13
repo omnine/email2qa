@@ -28,6 +28,7 @@ class RunOptions:
     limit: int | None = None
     dry_run: bool = False
     resume: bool = True
+    verbose: bool = False
 
 
 def _required(name: str) -> str:

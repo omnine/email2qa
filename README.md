@@ -11,10 +11,28 @@
 
 ## Setup
 
+Ubuntu quick setup:
+
+```bash
+sudo apt update
+sudo apt install -y python3-venv python3-pip
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+cp .env.example .env
+```
+
+Re-activate the environment later with:
+
+```bash
+source .venv/bin/activate
+```
+
 1. Create and activate a virtual environment.
 2. Install dependencies:
 
-```powershell
+```bash
 pip install -e .[dev]
 ```
 
@@ -38,37 +56,60 @@ The application will automatically load a local `.env` file (via `python-dotenv`
 
 Dry run (no LLM calls):
 
-```powershell
+```bash
 python -m email2qa.main --dry-run --limit 20
 ```
 
 Live run:
 
-```powershell
+```bash
 python -m email2qa.main --since 2026-01-01 --limit 100
+```
+
+Live run with step-by-step logging:
+
+```bash
+python -m email2qa.main --verbose --since 2026-01-01 --limit 100
+```
+
+Example verbose output:
+
+Note: IDs, counts, and timestamps in this example vary per run.
+
+```text
+[verbose] Run initialized (run_id=20260213T120000Z, output=/path/to/output/20260213T120000Z)
+[verbose] Loaded checkpoint (last_sent_at=2026-02-12T09:15:00+00:00, message_id=abc-123)
+[verbose] Fetching sent items from Exchange
+[verbose] Fetched 42 messages
+[verbose] Processing message msg-001 sent 2026-02-12T10:03:22+00:00
+[verbose] Preprocess passed for msg-001
+[verbose] LLM extraction completed for msg-001 (confidence=0.81)
+[verbose] Accepted msg-001
+[verbose] Manifest written
+[verbose] Run complete (accepted=30, rejected=12, total=42)
 ```
 
 Disable resume behavior for a full reprocess:
 
-```powershell
+```bash
 python -m email2qa.main --no-resume --since 2026-01-01 --limit 100
 ```
 
 Inspect current checkpoint:
 
-```powershell
+```bash
 python -m email2qa.main --checkpoint-inspect
 ```
 
 Reset current checkpoint:
 
-```powershell
+```bash
 python -m email2qa.main --checkpoint-reset
 ```
 
 Skip reset confirmation prompt:
 
-```powershell
+```bash
 python -m email2qa.main --checkpoint-reset --force
 ```
 

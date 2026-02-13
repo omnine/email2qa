@@ -14,17 +14,33 @@ from email2qa.schema import Manifest, RejectedRecord
 
 
 def run_pipeline(config: AppConfig, options: RunOptions) -> str:
+    def log(message: str) -> None:
+        if options.verbose:
+            print(f"[verbose] {message}")
+
     started_at = datetime.now(timezone.utc)
     run_id, run_dir = make_run_dir(config.output_dir)
     checkpoint_file = checkpoint_path(config.output_dir)
     accepted_path = run_dir / "accepted.jsonl"
     rejected_path = run_dir / "rejected.jsonl"
+    log(f"Run initialized (run_id={run_id}, output={run_dir})")
 
     checkpoint = load_checkpoint(checkpoint_file) if options.resume else None
     since = options.since
     if checkpoint and (since is None or checkpoint.last_sent_at > since):
         since = checkpoint.last_sent_at
+    if options.resume:
+        if checkpoint:
+            log(
+                "Loaded checkpoint "
+                f"(last_sent_at={checkpoint.last_sent_at.isoformat()}, message_id={checkpoint.last_message_id})"
+            )
+        else:
+            log("Resume enabled but no checkpoint file found")
+    else:
+        log("Resume disabled; processing from provided time window")
 
+    log("Fetching sent items from Exchange")
     messages = fetch_sent_items(
         server=config.exchange_server,
         email=config.exchange_email,
@@ -34,19 +50,25 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
         until=options.until,
         limit=options.limit,
     )
+    log(f"Fetched {len(messages)} messages")
 
     state = new_quality_state()
     ollama = OllamaClient(config.ollama_base_url, config.ollama_model)
+    log(
+        f"Quality/LLM initialized (dry_run={options.dry_run}, model={config.ollama_model}, min_confidence={config.min_confidence})"
+    )
 
     accepted = 0
     rejected = 0
     last_processed: tuple[datetime, str] | None = None
 
     for message in messages:
+        log(f"Processing message {message.message_id} sent {message.sent_at.isoformat()}")
         if checkpoint and (message.sent_at, message.message_id) <= (
             checkpoint.last_sent_at,
             checkpoint.last_message_id,
         ):
+            log(f"Skipped by checkpoint: {message.message_id}")
             continue
 
         if last_processed is None or (message.sent_at, message.message_id) > last_processed:
@@ -63,7 +85,9 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
             )
             append_jsonl(rejected_path, reject)
             rejected += 1
+            log(f"Rejected {message.message_id}: insufficient_content")
             continue
+        log(f"Preprocess passed for {message.message_id}")
 
         if options.dry_run:
             candidate = LlmResult(
@@ -72,9 +96,11 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
                 confidence=0.0,
                 extraction_notes="dry_run",
             )
+            log(f"LLM step skipped for {message.message_id} (dry-run)")
         else:
             prompt = build_user_prompt(message, pre.cleaned_text)
             candidate = ollama.extract_qa(prompt)
+            log(f"LLM extraction completed for {message.message_id} (confidence={candidate.confidence:.2f})")
 
         qa, reject = evaluate_candidate(
             message=message,
@@ -86,9 +112,11 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
         if qa:
             append_jsonl(accepted_path, qa)
             accepted += 1
+            log(f"Accepted {message.message_id}")
         else:
             append_jsonl(rejected_path, reject)
             rejected += 1
+            log(f"Rejected {message.message_id}: {reject.reason}")
 
     finished_at = datetime.now(timezone.utc)
     manifest = Manifest(
@@ -103,11 +131,17 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
         min_confidence=config.min_confidence,
     )
     write_manifest(run_dir / "manifest.json", manifest)
+    log("Manifest written")
 
     if last_processed:
         write_checkpoint(
             checkpoint_file,
             Checkpoint(last_sent_at=last_processed[0], last_message_id=last_processed[1]),
         )
+        log(
+            f"Checkpoint updated (last_sent_at={last_processed[0].isoformat()}, message_id={last_processed[1]})"
+        )
+
+    log(f"Run complete (accepted={accepted}, rejected={rejected}, total={len(messages)})")
 
     return str(run_dir)

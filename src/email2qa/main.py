@@ -33,6 +33,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--limit", type=int, default=None, help="Maximum number of emails")
     parser.add_argument("--dry-run", action="store_true", help="Skip LLM call and only run pipeline checks")
     parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print per-step progress and outcomes while processing",
+    )
+    parser.add_argument(
         "--resume",
         action=argparse.BooleanOptionalAction,
         default=True,
@@ -87,6 +92,7 @@ def main() -> None:
         limit=args.limit,
         dry_run=args.dry_run,
         resume=args.resume,
+        verbose=args.verbose,
     )
 
     output_dir = run_pipeline(config, options)
