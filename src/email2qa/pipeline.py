@@ -88,6 +88,11 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
             log(f"Rejected {message.message_id}: insufficient_content")
             continue
         log(f"Preprocess passed for {message.message_id}")
+        log(f"message={message}")
+        log(f"pre.cleaned_text={pre.cleaned_text}")
+
+        prompt = build_user_prompt(message, pre.cleaned_text)
+        log(f"prompt={prompt}")
 
         if options.dry_run:
             candidate = LlmResult(
@@ -98,7 +103,6 @@ def run_pipeline(config: AppConfig, options: RunOptions) -> str:
             )
             log(f"LLM step skipped for {message.message_id} (dry-run)")
         else:
-            prompt = build_user_prompt(message, pre.cleaned_text)
             candidate = ollama.extract_qa(prompt)
             log(f"LLM extraction completed for {message.message_id} (confidence={candidate.confidence:.2f})")
 

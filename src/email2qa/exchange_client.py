@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass(frozen=True)
@@ -13,6 +13,14 @@ class SourceEmail:
     sent_at: datetime
     sender: str
     recipients: list[str]
+
+
+def _normalize_filter_datetime(value: datetime | None) -> datetime | None:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def fetch_sent_items(
@@ -35,6 +43,8 @@ def fetch_sent_items(
     account = Account(primary_smtp_address=email, config=config, autodiscover=False, access_type=DELEGATE)
 
     query = account.sent.all().order_by("-datetime_sent")
+    since = _normalize_filter_datetime(since)
+    until = _normalize_filter_datetime(until)
     if since:
         query = query.filter(datetime_sent__gte=since)
     if until:

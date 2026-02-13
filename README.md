@@ -123,3 +123,7 @@ Each run writes to a timestamped folder under `EMAIL2QA_OUTPUT_DIR`:
 
 Checkpoint state is persisted at `EMAIL2QA_OUTPUT_DIR/checkpoint.json`.
 By default, runs resume from the last processed `(sent_at, message_id)` to avoid reprocessing prior emails.
+
+## References
+
+[How To Run an Open-Source LLM on Your Personal Computer – Run Ollama Locally](https://www.freecodecamp.org/news/how-to-run-an-open-source-llm-on-your-personal-computer-run-ollama-locally/)

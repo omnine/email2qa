@@ -16,7 +16,7 @@ def _parse_datetime(value: str | None) -> datetime | None:
     parsed = isoparse(value)
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=timezone.utc)
-    return parsed
+    return parsed.astimezone(timezone.utc)
 
 
 def confirm_checkpoint_reset(force: bool, input_fn=input) -> bool:

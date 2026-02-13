@@ -23,6 +23,7 @@ def test_checkpoint_roundtrip(tmp_path: Path) -> None:
     assert loaded is not None
     assert loaded.last_sent_at == checkpoint.last_sent_at
     assert loaded.last_message_id == checkpoint.last_message_id
+    assert loaded.last_sent_at.tzinfo is timezone.utc
 
 
 def test_load_checkpoint_missing_file_returns_none(tmp_path: Path) -> None:

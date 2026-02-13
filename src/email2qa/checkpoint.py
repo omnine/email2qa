@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class Checkpoint(BaseModel):
@@ -12,6 +12,13 @@ class Checkpoint(BaseModel):
 
     last_sent_at: datetime
     last_message_id: str
+
+    @field_validator("last_sent_at")
+    @classmethod
+    def _normalize_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
 
 
 def checkpoint_path(base_dir: str) -> Path:
